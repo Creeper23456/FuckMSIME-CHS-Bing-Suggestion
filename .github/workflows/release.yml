@@ -16,6 +16,7 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:      # manual test runs; publish/attest steps are tag-gated
 
 permissions:
   contents: write        # publish the GitHub Release
@@ -53,10 +54,13 @@ jobs:
 
       # -- SBOM of the release binary (syft). Kept as a release asset AND
       #    attested below; workflow/upload duplication disabled on purpose.
+      #    NOTE: the input is "path" (not "artifact") — an unknown input is
+      #    silently ignored and syft falls back to scanning the whole
+      #    checkout directory, which produces a useless SBOM.
       - name: Generate SBOM (CycloneDX)
         uses: anchore/sbom-action@v0
         with:
-          artifact: build/${{ env.EXE }}
+          path: build/${{ env.EXE }}
           format: cyclonedx-json
           output-file: build/${{ env.EXE }}.cdx.json
           upload-artifact: false
@@ -64,13 +68,15 @@ jobs:
 
       # -- SLSA v1 build provenance: who built what, from which ref/commit.
       - name: Attest build provenance
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/attest-build-provenance@v4
         with:
           subject-path: build/${{ env.EXE }}
 
       # -- Bind the SBOM to the binary's digest in the attestation store.
       - name: Attest SBOM
-        uses: actions/attest-sbom@v4
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/attest@v4
         with:
           subject-path: build/${{ env.EXE }}
           sbom-path: build/${{ env.EXE }}.cdx.json
@@ -86,6 +92,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
         with:
           name: ${{ github.ref_name }}
