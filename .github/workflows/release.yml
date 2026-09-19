@@ -72,10 +72,29 @@ jobs:
       - name: Generate SBOM (CycloneDX)
         shell: pwsh
         run: |
-          syft scan "file:build/${{ env.EXE }}" -o "cyclonedx-json=build/${{ env.EXE }}.cdx.json"
-          if (-not (Select-String -Path "build/${{ env.EXE }}.cdx.json" -Pattern 'SHA-256' -Quiet)) {
+          $exe = "build/${{ env.EXE }}"
+          $sbomPath = "$exe.cdx.json"
+          syft scan "file:$exe" -o "cyclonedx-json=$sbomPath"
+          if ($LASTEXITCODE -ne 0) { throw "syft failed with exit code $LASTEXITCODE" }
+
+          # syft 1.42.x on Windows never emits file digests (verified for PE
+          # and plain files, even with file-metadata-cataloger + selection:
+          # all), so attach the binary's real SHA-256 to the subject
+          # component ourselves. Without this the SBOM doesn't reference
+          # the artifact it describes.
+          $sha256 = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $sbom = Get-Content $sbomPath -Raw | ConvertFrom-Json
+          if (-not $sbom.metadata.component) { throw "SBOM has no metadata.component" }
+          $sbom.metadata.component |
+            Add-Member -NotePropertyName hashes -NotePropertyValue @(
+              [PSCustomObject]@{ alg = 'SHA-256'; content = $sha256 }
+            ) -Force
+          $sbom | ConvertTo-Json -Depth 64 | Set-Content $sbomPath -Encoding utf8NoBOM
+
+          if ((Get-Content $sbomPath -Raw) -notmatch [regex]::Escape($sha256)) {
             throw "SBOM does not carry the binary SHA-256 - refusing to publish"
           }
+          Write-Host "::notice::SBOM bound to sha256:$sha256"
 
       # -- SLSA v1 build provenance: who built what, from which ref/commit.
       - name: Attest build provenance
