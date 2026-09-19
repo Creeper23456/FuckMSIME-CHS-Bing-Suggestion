@@ -1,0 +1,119 @@
+# ============================================================================
+#  Release — tagged builds (v*).
+#
+#  checkout -> setup MSVC -> build.bat -> SHA256
+#    -> SBOM (CycloneDX, via syft)
+#    -> SLSA build-provenance attestation (actions/attest-build-provenance)
+#    -> SBOM attestation (actions/attest-sbom)
+#    -> workflow artifact + GitHub Release with exe / checksum / SBOM.
+#
+#  Attestations are stored in the repo's attestation store; verify locally:
+#    gh attestation verify <exe> -R Creeper23456/FuckMSIME-CHS-Bing-Suggestion
+# ============================================================================
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write        # publish the GitHub Release
+  id-token: write        # OIDC token for the attestation framework
+  attestations: write    # store build provenance / SBOM attestations
+
+env:
+  EXE: FuckMSIME-CHS-Bing-Suggestion.exe
+
+jobs:
+  release:
+    name: Build, SBOM, attest, publish
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup MSVC x64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build (build.bat)
+        shell: cmd
+        run: build.bat
+
+      - name: Compute SHA256
+        shell: pwsh
+        run: |
+          $exe = "build/${{ env.EXE }}"
+          $sha256 = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path "$exe.sha256" -Value "$sha256  ${{ env.EXE }}" -Encoding ascii
+          Add-Content -Path $env:GITHUB_ENV -Value "SHA256=$sha256"
+          Get-Content "$exe.sha256"
+
+      # -- SBOM of the release binary (syft). Kept as a release asset AND
+      #    attested below; workflow/upload duplication disabled on purpose.
+      - name: Generate SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          artifact: build/${{ env.EXE }}
+          format: cyclonedx-json
+          output-file: build/${{ env.EXE }}.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      # -- SLSA v1 build provenance: who built what, from which ref/commit.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: build/${{ env.EXE }}
+
+      # -- Bind the SBOM to the binary's digest in the attestation store.
+      - name: Attest SBOM
+        uses: actions/attest-sbom@v2
+        with:
+          subject-path: build/${{ env.EXE }}
+          sbom-path: build/${{ env.EXE }}.cdx.json
+
+      - name: Upload release bundle (workflow artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ github.ref_name }}
+          path: |
+            build/${{ env.EXE }}
+            build/${{ env.EXE }}.sha256
+            build/${{ env.EXE }}.cdx.json
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            Windows x64 服务端二进制（静态链接 /MT，内嵌 requireAdministrator 清单）。
+
+            **SHA-256**: `${{ env.SHA256 }}`
+
+            ### 文件
+            - `${{ env.EXE }}` — 主程序（服务本体 + 图形安装向导，单文件）
+            - `${{ env.EXE }}.sha256` — sha256sum 格式校验文件
+            - `${{ env.EXE }}.cdx.json` — CycloneDX SBOM
+
+            ### 校验
+            ```bat
+            sha256sum -c ${{ env.EXE }}.sha256
+            ```
+
+            ### 供应链
+            构建过程附带 SLSA 构建来源证明与 SBOM attestation，可离线验证：
+
+            ```sh
+            gh attestation verify ${{ env.EXE }} \
+                -R Creeper23456/FuckMSIME-CHS-Bing-Suggestion
+            ```
+          files: |
+            build/${{ env.EXE }}
+            build/${{ env.EXE }}.sha256
+            build/${{ env.EXE }}.cdx.json
+          fail_on_unmatched_files: true
