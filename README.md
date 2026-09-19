@@ -1,5 +1,8 @@
 # FuckMSIME-CHS-Bing-Suggestion
 
+[![CI](https://github.com/Creeper23456/FuckMSIME-CHS-Bing-Suggestion/actions/workflows/ci.yml/badge.svg)](https://github.com/Creeper23456/FuckMSIME-CHS-Bing-Suggestion/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Creeper23456/FuckMSIME-CHS-Bing-Suggestion/actions/workflows/codeql.yml/badge.svg)](https://github.com/Creeper23456/FuckMSIME-CHS-Bing-Suggestion/actions/workflows/codeql.yml)
+
 **Windows 服务：让微软拼音（CHS IME）的 Bing 云候选永久保持关闭，开机自启，全员生效。**
 
 ## 背景
@@ -65,6 +68,25 @@ FuckMSIME-CHS-Bing-Suggestion.exe debug       :: 控制台调试模式（Ctrl+C 
 
 新增语言 = 加一张表（14 个 `STR_*` 条目）+ 在 `kLocales` 里注册一行 LANGID。
 构建必须带 `/utf-8`（`build.bat` 已固定传入），否则非 ASCII 文案在编译期就会乱码。
+
+## CI / CD 与供应链
+
+- **CI**（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)）：push/PR 到 main 时在
+  `windows-latest` 上用 `build.bat` 构建 → 计算 SHA-256 → 冒烟检查
+  （x64 PE + requireAdministrator 清单内嵌）→ 上传 artifact
+- **Release**（[`.github/workflows/release.yml`](.github/workflows/release.yml)）：推 `v*` tag 时构建并发布 Release，
+  产物附 `sha256` 校验文件、CycloneDX SBOM（syft）、SLSA 构建来源证明与
+  SBOM attestation（存于仓库 attestation store）
+
+  ```sh
+  gh attestation verify FuckMSIME-CHS-Bing-Suggestion.exe \
+      -R Creeper23456/FuckMSIME-CHS-Bing-Suggestion
+  ```
+
+- **CodeQL**（[`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)）：`security-extended`
+  查询集，push/PR + 每周定时，结果在 Security 标签页
+- **Dependabot**：每周跟进 workflow 内 Actions 版本
+- 漏洞报告请走私密渠道，详见 [SECURITY.md](SECURITY.md)
 
 ## 工作原理
 
