@@ -309,7 +309,39 @@ std::wstring InstallTarget() {
     return InstallDir() + L"\\" + kServiceName + L".exe";
 }
 
-// If the service exists, fetch its configured binary path (quotes stripped).
+// Extract the executable path from a service ImagePath, tolerating
+// arguments, unquoted "Program Files" paths, and damaged quoting.
+// Mirrors how the SCM itself resolves unquoted ambiguity: try successively
+// longer space-joined prefixes and keep the longest one ending in ".exe".
+std::wstring ExtractImageApp(const wchar_t* raw) {
+    std::wstring p = raw ? raw : L"";
+    const size_t s = p.find_first_not_of(L" \t");
+    if (s == std::wstring::npos) return L"";
+    p = p.substr(s);
+
+    if (p.front() == L'"') {
+        const size_t close = p.find(L'"', 1);
+        if (close == std::wstring::npos) return p.substr(1);   // damaged: unterminated
+        return p.substr(1, close - 1);                         // args after " ignored
+    }
+
+    std::wstring best;
+    for (size_t start = 0;;) {
+        const size_t sp = p.find(L' ', start);
+        const std::wstring cand =
+            p.substr(0, sp == std::wstring::npos ? p.size() : sp);
+        if (cand.size() >= 4 &&
+            _wcsicmp(cand.c_str() + cand.size() - 4, L".exe") == 0)
+            best = cand;
+        if (sp == std::wstring::npos) break;
+        start = sp + 1;
+    }
+    if (!best.empty()) return best;
+    const size_t sp = p.find(L' ');   // fallback: first whitespace token
+    return sp == std::wstring::npos ? p : p.substr(0, sp);
+}
+
+// If the service exists, fetch the executable its ImagePath points at.
 bool GetServiceBinary(std::wstring* path) {
     SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr,
                                    SERVICE_QUERY_STATUS | SERVICE_QUERY_CONFIG);
@@ -324,9 +356,7 @@ bool GetServiceBinary(std::wstring* path) {
         auto buf = std::make_unique<BYTE[]>(need);
         auto cfg = reinterpret_cast<QUERY_SERVICE_CONFIGW*>(buf.get());
         if (QueryServiceConfigW(svc, cfg, need, &need)) {
-            std::wstring p = cfg->lpBinaryPathName;
-            if (!p.empty() && p.front() == L'"') p = p.substr(1, p.size() - 2);
-            *path = p;
+            *path = ExtractImageApp(cfg->lpBinaryPathName);
             ok = true;
         }
     }
