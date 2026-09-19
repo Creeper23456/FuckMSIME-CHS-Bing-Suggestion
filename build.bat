@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
-rem == ChsCloudPin build script (MSVC x64) ==
-rem Usage: build.bat          -> build\ChsCloudPin.exe
+rem == FuckMSIME-CHS-Bing-Suggestion build script (MSVC x64) ==
+rem Usage: build.bat          -> build\FuckMSIME-CHS-Bing-Suggestion.exe
 rem        build.bat clean    -> remove build dir
 
 if "%1"=="clean" (
@@ -29,7 +29,7 @@ if errorlevel 1 (
 )
 
 cl /nologo /O2 /W4 /EHsc /MT /DUNICODE /D_UNICODE ^
-   /Fe:build\ChsCloudPin.exe ^
+   /Fe:build\FuckMSIME-CHS-Bing-Suggestion.exe ^
    src\main.cpp ^
    /link advapi32.lib /SUBSYSTEM:CONSOLE
 if errorlevel 1 (
@@ -38,4 +38,4 @@ if errorlevel 1 (
 )
 
 echo.
-echo OK: build\ChsCloudPin.exe
+echo OK: build\FuckMSIME-CHS-Bing-Suggestion.exe

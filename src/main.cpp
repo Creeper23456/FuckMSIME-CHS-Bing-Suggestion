@@ -29,16 +29,16 @@
 
 namespace {
 
-constexpr wchar_t kServiceName[] = L"ChsCloudPin";
-constexpr wchar_t kServiceDisplay[] = L"CHS IME Cloud Suggestion Pin";
+constexpr wchar_t kServiceName[] = L"FuckMSIME-CHS-Bing-Suggestion";
+constexpr wchar_t kServiceDisplay[] = L"FuckMSIME-CHS-Bing-Suggestion";
 constexpr wchar_t kServiceDesc[] =
     L"Pins Microsoft Pinyin cloud-suggestion settings to OFF for every user, "
     L"reverting writes made by TextInputHost.exe.";
 constexpr wchar_t kChsPath[] = L"Software\\Microsoft\\InputMethod\\Settings\\CHS";
 constexpr wchar_t kValCloud[] = L"Enable Cloud Candidate";
 constexpr wchar_t kValAuto[] = L"AutoShowCloudSuggestion";
-constexpr wchar_t kLogDir[] = L"C:\\ProgramData\\ChsCloudPin";
-constexpr wchar_t kLogFile[] = L"C:\\ProgramData\\ChsCloudPin\\ChsCloudPin.log";
+constexpr wchar_t kLogDir[] = L"C:\\ProgramData\\FuckMSIME-CHS-Bing-Suggestion";
+constexpr wchar_t kLogFile[] = L"C:\\ProgramData\\FuckMSIME-CHS-Bing-Suggestion\\FuckMSIME-CHS-Bing-Suggestion.log";
 
 constexpr DWORD kRescanMs = 5000;   // picks up hives loading at logon
 constexpr DWORD kMaxWfmo = 60;      // WaitForMultipleObjects practical cap
@@ -64,7 +64,7 @@ void Log(const wchar_t* fmt, ...) {
     _vsnwprintf_s(msg, _countof(msg), _TRUNCATE, fmt, args);
     va_end(args);
 
-    OutputDebugStringW((std::wstring(L"[ChsCloudPin] ") + msg).c_str());
+    OutputDebugStringW((std::wstring(L"[FuckMSIME] ") + msg).c_str());
 
     CreateDirectoryW(kLogDir, nullptr);
     FILE* f = nullptr;

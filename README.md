@@ -1,4 +1,4 @@
-# ChsCloudPin
+# FuckMSIME-CHS-Bing-Suggestion
 
 **Windows 服务：让微软拼音（CHS IME）的 Bing 云候选永久保持关闭，开机自启，全员生效。**
 
@@ -21,17 +21,17 @@ Windows 11 24H2 上，`TextInputHost.exe`（Windows 输入体验）会在推广�
 build.bat
 ```
 
-产物：`build\ChsCloudPin.exe`（静态链接 /MT，单文件可部署）。
+产物：`build\FuckMSIME-CHS-Bing-Suggestion.exe`（静态链接 /MT，单文件可部署）。
 
 ## 使用（需管理员）
 
 ```bat
-ChsCloudPin.exe install     :: 安装为自动启动服务并立即启动
-ChsCloudPin.exe uninstall   :: 停止并卸载服务
-ChsCloudPin.exe debug       :: 控制台调试模式（Ctrl+C 退出）
+FuckMSIME-CHS-Bing-Suggestion.exe install     :: 安装为自动启动服务并立即启动
+FuckMSIME-CHS-Bing-Suggestion.exe uninstall   :: 停止并卸载服务
+FuckMSIME-CHS-Bing-Suggestion.exe debug       :: 控制台调试模式（Ctrl+C 退出）
 ```
 
-日志：`C:\ProgramData\ChsCloudPin\ChsCloudPin.log`
+日志：`C:\ProgramData\FuckMSIME-CHS-Bing-Suggestion\FuckMSIME-CHS-Bing-Suggestion.log`
 
 ## 工作原理
 
