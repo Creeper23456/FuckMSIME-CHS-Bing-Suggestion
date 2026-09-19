@@ -31,7 +31,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup MSVC x64
         uses: ilammy/msvc-dev-cmd@v1
@@ -64,19 +64,19 @@ jobs:
 
       # -- SLSA v1 build provenance: who built what, from which ref/commit.
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: build/${{ env.EXE }}
 
       # -- Bind the SBOM to the binary's digest in the attestation store.
       - name: Attest SBOM
-        uses: actions/attest-sbom@v2
+        uses: actions/attest-sbom@v4
         with:
           subject-path: build/${{ env.EXE }}
           sbom-path: build/${{ env.EXE }}.cdx.json
 
       - name: Upload release bundle (workflow artifact)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-${{ github.ref_name }}
           path: |
@@ -86,7 +86,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ github.ref_name }}
           generate_release_notes: true

@@ -31,7 +31,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup MSVC x64
         uses: ilammy/msvc-dev-cmd@v1
@@ -67,7 +67,7 @@ jobs:
           Write-Host "OK: x64 PE with requireAdministrator manifest"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: win-x64-${{ github.sha }}
           path: |
