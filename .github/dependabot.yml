@@ -1,0 +1,23 @@
+# ============================================================================
+#  Dependabot — keep GitHub Actions pinned versions current.
+#
+#  This is a native C++ project without a package manager; the only
+#  third-party inputs CI consumes are the actions themselves, so
+#  github-actions is the only applicable ecosystem.
+# ============================================================================
+
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    labels:
+      - ci
+    groups:
+      github-actions:
+        patterns:
+          - '*'
