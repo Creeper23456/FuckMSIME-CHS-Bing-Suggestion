@@ -729,6 +729,198 @@ static const wchar_t* const kStrings_loLA[STR_COUNT] = {
         L"ຖ້າເຮັດວຽກໂດຍບໍ່ໃສ່ອາກິວເມັນ ຈະເປີດຕົວຊ່ວຍຕິດຕັ້ງ/ອັບເກດ/ຖອນບໍລິການແບບກາຟຟິກ.",
 };
 
+// ---------------------------------------------------------------- kk-KZ ----
+
+static const wchar_t* const kStrings_kkKZ[STR_COUNT] = {
+    /* STR_APP_NAME            */ L"FuckMSIME-CHS-Bing-Suggestion",
+    /* STR_UI_INSTALL_TITLE    */ L"Жүйелік қызметті орнату",
+    /* STR_UI_INSTALL_CONFIRM  */ L"Бағдарлама Windows қызметі ретінде орнатылады:\n\n"
+        L"  · Орналасуы: Program Files\n"
+        L"  · Жүйе жүктелгенде автоматты іске қосылады\n"
+        L"  · SYSTEM құқығымен жұмыс істейді, БАРЛЫҚ пайдаланушыға әсер етеді\n"
+        L"  · Microsoft Pinyin бұлттық ұсыныстарын мәңгілікке өшірілген күйде ұстайды\n\n"
+        L"Жалғастыру кере мс?",
+    /* STR_UI_FOUND_INSTALLED  */ L"Орнатылғаны анықталды",
+    /* STR_UI_UPGRADE_OR_REMOVE */ L"Бұл қызмет бұрыннан орнатылған.\n\n"
+        L"«Жаңарту» — орнатылған көшірмені осы нұсқамен алмастырып, қызметті қайта іске қосады\n"
+        L"«Қызметті алу» — қызметті тоқтатып, жояды (бағдарлама файлдары мен журналдар сақталады)",
+    /* STR_UI_BTN_UPGRADE      */ L"Жаңарту",
+    /* STR_UI_BTN_UNINSTALL    */ L"Қызметті алу",
+    /* STR_UI_BTN_CANCEL       */ L"Бас тарту",
+    /* STR_UI_INSTALL_DONE     */ L"Орнату аяқталды, қызмет іске қосылды.\n\n"
+        L"Енді барлық пайдаланушы үшін Microsoft Pinyin бұлттық параметрлері өшірілген күйде ұсталады (қайта жүктегеннен кейін де).",
+    /* STR_UI_UPGRADE_DONE     */ L"Жаңарту аяқталды, қызмет жаңа нұсқамен қайта іске қосылды.",
+    /* STR_UI_UNINSTALL_DONE   */ L"Қызмет тоқтатылып, жойылды.\n\n"
+        L"Бағдарлама файлдары мен журналдар орнында қалады, оларды қолмен жоюға болады.",
+    /* STR_UI_OP_FAILED_FMT    */ L"Операция сәтсіз аяқталды (қате %lu).\n\nБағдарламаны әкімші ретінде іске қосқаныңызға көз жеткізіңіз.",
+    /* STR_UI_CANCELLED        */ L"Бас тартылды. Ешбір өзгеріс енгізілген жоқ.",
+    /* STR_USAGE               */ L"Қолдану:\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe install    қызметті орнату және іске қосу (әкімші құқығы қажет)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe uninstall  қызметті тоқтатып, жою (әкімші құқығы қажет)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe debug      консольдік жөндеу режимі\n"
+        L"Аргументсіз іске қосылса, графикалық орнату/жаңарту/қызметті алу шебері ашылады.",
+};
+
+// ---------------------------------------------------------------- ky-KG ----
+
+static const wchar_t* const kStrings_kyKG[STR_COUNT] = {
+    /* STR_APP_NAME            */ L"FuckMSIME-CHS-Bing-Suggestion",
+    /* STR_UI_INSTALL_TITLE    */ L"Системдик кызматты орнотуу",
+    /* STR_UI_INSTALL_CONFIRM  */ L"Бул программа Windows кызматы катары орнотулат:\n\n"
+        L"  · Жайгашкан жери: Program Files\n"
+        L"  · Система күйгүзүлгөндө автоматтык иштейт\n"
+        L"  · SYSTEM укугу менен иштейт, БАРДЫК колдонуучуларды камтыйт\n"
+        L"  · Microsoft Pinyin булут сунуштарын туруктуу өчүрүү режиминде кармайт\n\n"
+        L"Улабы бересизби?",
+    /* STR_UI_FOUND_INSTALLED  */ L"Орнотулганы аныкталды",
+    /* STR_UI_UPGRADE_OR_REMOVE */ L"Бул кызмат мурунтан эле орнотулган.\n\n"
+        L"«Жаңыртуу» — орнотулган нускасын бул курулма менен алмаштырып, кызматты кайра иштетет\n"
+        L"«Кызматты алып салуу» — кызматты токтотуп, алып салат (программа файлдары жана логдор сакталат)",
+    /* STR_UI_BTN_UPGRADE      */ L"Жаңыртуу",
+    /* STR_UI_BTN_UNINSTALL    */ L"Кызматты алып салуу",
+    /* STR_UI_BTN_CANCEL       */ L"Жокко чыгаруу",
+    /* STR_UI_INSTALL_DONE     */ L"Орнотулду, кызмат иштейт.\n\n"
+        L"Азындан тартып бардык колдонуучу үчүн Microsoft Pinyin булут жөндөөлөрү өчүк абалда кармалат (кайра жүктөгөндөн кийин да).",
+    /* STR_UI_UPGRADE_DONE     */ L"Жаңыртылды, кызмат жаңы курулма менен кайра иштетилди.",
+    /* STR_UI_UNINSTALL_DONE   */ L"Кызмат токтотулуп, алынды.\n\n"
+        L"Программа файлдары жана логдор орунда калат, аларды кол менен жок кылса болот.",
+    /* STR_UI_OP_FAILED_FMT    */ L"Операция ишке ашкан жок (ката %lu).\n\nПрограмманы администратор катары иштетип жатканыңызды текшериңиз.",
+    /* STR_UI_CANCELLED        */ L"Жокко чыгарылды. Эч кандай өзгөртүү киргизилген жок.",
+    /* STR_USAGE               */ L"Колдонуу:\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe install    кызматты орнотуп, иштетүү (админ укугу керек)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe uninstall  кызматты токтотуп, алып салуу (админ укугу керек)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe debug      консолдук дебаг режими\n"
+        L"Аргументсиз иштетсе, графикалык орнотуу/жаңыртуу/кызматты алып салуу чебери ачылат.",
+};
+
+// ---------------------------------------------------------------- tg-TJ ----
+
+static const wchar_t* const kStrings_tgTJ[STR_COUNT] = {
+    /* STR_APP_NAME            */ L"FuckMSIME-CHS-Bing-Suggestion",
+    /* STR_UI_INSTALL_TITLE    */ L"Насб кардани хидмати система",
+    /* STR_UI_INSTALL_CONFIRM  */ L"Ин барнома ҳамчун хидмати Windows насб мешавад:\n\n"
+        L"  · Ҷойгиршавӣ: Program Files\n"
+        L"  · Ҳангоми роҳандозии система худкор оғоз мешавад\n"
+        L"  · бо имтиёзи SYSTEM кор мекунад, барои ҲАМАИ корбарон\n"
+        L"  · Пешниҳодҳои абрии Microsoft Pinyin-ро доимо хомӯш нигоҳ медорад\n\n"
+        L"Идома медиҳед?",
+    /* STR_UI_FOUND_INSTALLED  */ L"Насбшавӣ ёфт шуд",
+    /* STR_UI_UPGRADE_OR_REMOVE */ L"Ин хидмат аллакай насб шудааст.\n\n"
+        L"«Навсозӣ» — нусхаи насбшударо бо ин сохт иваз карда, хидматро аз нав оғоз мекунад\n"
+        L"«Хориҷ кардани хидмат» — хидматро боздорада, хориҷ мекунад (файлҳои барнома ва сабтҳо нигоҳ дошта мешаванд)",
+    /* STR_UI_BTN_UPGRADE      */ L"Навсозӣ",
+    /* STR_UI_BTN_UNINSTALL    */ L"Хориҷ кардани хидмат",
+    /* STR_UI_BTN_CANCEL       */ L"Бекор кардан",
+    /* STR_UI_INSTALL_DONE     */ L"Насб шуд, хидмат оғоз шуд.\n\n"
+        L"Аз ҳоло танзимотҳои абрии Microsoft Pinyin барои ҳамаи корбарон хомӯш нигоҳ дошта мешаванд (баъди аз нав роҳандозӣ низ).",
+    /* STR_UI_UPGRADE_DONE     */ L"Навсозӣ анҷом ёфт, хидмат бо сохти нав аз нав оғоз шуд.",
+    /* STR_UI_UNINSTALL_DONE   */ L"Хидмат боздошта шуда, хориҷ карда шуд.\n\n"
+        L"Файлҳои барнома ва сабтҳо дар ҷойашон мемонанд, онҳоро дастӣ нест кардан мумкин аст.",
+    /* STR_UI_OP_FAILED_FMT    */ L"Амалиёт иҷро нашуд (хатои %lu).\n\nТасдиқ кунед, ки барномаро ҳамчун администратор иҷро медиҳед.",
+    /* STR_UI_CANCELLED        */ L"Бекор карда шуд. Ягон тағйирот ворид нашуд.",
+    /* STR_USAGE               */ L"Истифода:\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe install    насб ва оғози хидмат (бо ҳуқуқи администратор)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe uninstall  боздоштан ва хориҷ кардани хидмат (бо ҳуқуқи администратор)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe debug      реҷаи ислоҳи консол\n"
+        L"Бе аргумент иҷро карда шавад, ёрии графикӣ-и насб/навсозӣ/хориҷкунии хидмат кушода мешавад.",
+};
+
+// ---------------------------------------------------------------- tk-TM ----
+
+static const wchar_t* const kStrings_tkTM[STR_COUNT] = {
+    /* STR_APP_NAME            */ L"FuckMSIME-CHS-Bing-Suggestion",
+    /* STR_UI_INSTALL_TITLE    */ L"Ulgy hyzmatyny gurmak",
+    /* STR_UI_INSTALL_CONFIRM  */ L"Bu programma Windows hyzmaty hökmünde gurnaljar:\n\n"
+        L"  · Ýerleşýan ýeri: Program Files\n"
+        L"  · Ulgy işe gaýdylanda awtomatik başlaýar\n"
+        L"  · SYSTEM hukugy bilen işleýär, ÄHLI ulanyjylary öz içine alýar\n"
+        L"  · Microsoft Pinyin bulut tekliplerini hemişelik öçük görnüşinde saklaýar\n\n"
+        L"Dowam etmelimi?",
+    /* STR_UI_FOUND_INSTALLED  */ L"Gurnalan bir ussatda tapyldy",
+    /* STR_UI_UPGRADE_OR_REMOVE */ L"Bu hyzmat eýýam gurnalan.\n\n"
+        L"«Janalandyr» — gurnalan nusgany şu gurluşyk bilen çalyşyp, hyzmaty gaýtadan işletýär\n"
+        L"«Hyzmaty aýyrmak» — hyzmaty duruzybar we aýyrýar (programma faýllary we gündelikler saklanýar)",
+    /* STR_UI_BTN_UPGRADE      */ L"Janalandyr",
+    /* STR_UI_BTN_UNINSTALL    */ L"Hyzmaty aýyrmak",
+    /* STR_UI_BTN_CANCEL       */ L"Ýatyr",
+    /* STR_UI_INSTALL_DONE     */ L"Gurnaldy. Hyzmat häzir işleýär.\n\n"
+        L"Bu wagtdan başlaýan Microsoft Pinyin bulut sazlamalary ähli ulanyjylar üçin öçük görnüşinde saklanar (gaýtadan işe gaýdylandan soň hem).",
+    /* STR_UI_UPGRADE_DONE     */ L"Janalandyryldy. Hyzmat täze gurluşyk bilen gaýtadan işledildi.",
+    /* STR_UI_UNINSTALL_DONE   */ L"Hyzmat duruzyldy we aýryldy.\n\n"
+        L"Programma faýllary we gündelikler öñki ýerlerinde galar, olary el bilen pozmak bolýar.",
+    /* STR_UI_OP_FAILED_FMT    */ L"Amal şowsuz boldy (%lu ýalňyşlygy).\n\nProgrammany administrator hökmünde işleýänigiňizi barlaň.",
+    /* STR_UI_CANCELLED        */ L"Ýatyryldy. Hiç zat üýtgedilmedi.",
+    /* STR_USAGE               */ L"Ulanylyşy:\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe install    hyzmaty gurmak we işletmek (admin hukugy gerek)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe uninstall  hyzmaty duruzybar we aýyrmak (admin hukugy gerek)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe debug      konsoly düzediş (debug) rejimi\n"
+        L"Argumentsyz işledilse, grafiki gurnama/janalandyrma/hyzmaty aýyrma ýolbaşçysy açylar.",
+};
+
+// ---------------------------------------------------------------- uz-UZ ----
+
+static const wchar_t* const kStrings_uzUZ[STR_COUNT] = {
+    /* STR_APP_NAME            */ L"FuckMSIME-CHS-Bing-Suggestion",
+    /* STR_UI_INSTALL_TITLE    */ L"Tizim xizmatini o'rnatish",
+    /* STR_UI_INSTALL_CONFIRM  */ L"Bu dastur Windows xizmati sifatida o'rnatiladi:\n\n"
+        L"  · Joylashuv: Program Files\n"
+        L"  · Kompyuter yonganda avtomatik ishga tushadi\n"
+        L"  · SYSTEM huquqi bilan ishlaydi, HAMMA foydalanuvchilarga ta'sir qiladi\n"
+        L"  · Microsoft Pinyin bulutli takliflarini butunlay o'chirib qo'yadi\n\n"
+        L"Davom etasizmi?",
+    /* STR_UI_FOUND_INSTALLED  */ L"O'rnatilgan versiya aniqlandi",
+    /* STR_UI_UPGRADE_OR_REMOVE */ L"Bu xizmat allaqachon o'rnatilgan.\n\n"
+        L"«Yangilash» — o'rnatilgan nusxani shu qurilma bilan almashtirib, xizmatni qayta ishga tushiradi\n"
+        L"«Xizmatni olib tashlash» — xizmatni to'xtatib, olib tashlaydi (dastur fayllari va jurnallar saqlanadi)",
+    /* STR_UI_BTN_UPGRADE      */ L"Yangilash",
+    /* STR_UI_BTN_UNINSTALL    */ L"Xizmatni olib tashlash",
+    /* STR_UI_BTN_CANCEL       */ L"Bekor qilish",
+    /* STR_UI_INSTALL_DONE     */ L"O'rnatildi, xizmat ishga tushdi.\n\n"
+        L"Endi barcha foydalanuvchilar uchun Microsoft Pinyin bulut sozlamalari o'chirilgan holatda saqlanadi (qayta yuklagandan keyin ham).",
+    /* STR_UI_UPGRADE_DONE     */ L"Yangilandi, xizmat yangi versiya bilan qayta ishga tushirildi.",
+    /* STR_UI_UNINSTALL_DONE   */ L"Xizmat to'xtatildi va olib tashlandi.\n\n"
+        L"Dastur fayllari va jurnallar o'z joyida qoladi, ularni qo'lda o'chirish mumkin.",
+    /* STR_UI_OP_FAILED_FMT    */ L"Amal bajarilmadi (xato %lu).\n\nDasturni administrator sifatida ishga tushirganingizni tekshiring.",
+    /* STR_UI_CANCELLED        */ L"Bekor qilindi. Hech narsa o'zgartirilmadi.",
+    /* STR_USAGE               */ L"Foydalanish:\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe install    xizmatni o'rnatish va ishga tushirish (admin huquqi kerak)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe uninstall  xizmatni to'xtatish va olib tashlash (admin huquqi kerak)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe debug      konsol tashxis rejimi\n"
+        L"Argumentlarsiz ishga tushirilsa, grafik o'rnatish/yangilash/xizmatni olib tashlash ustasi ochiladi.",
+};
+
+// ---------------------------------------------------------------- mn-MN ----
+
+static const wchar_t* const kStrings_mnMN[STR_COUNT] = {
+    /* STR_APP_NAME            */ L"FuckMSIME-CHS-Bing-Suggestion",
+    /* STR_UI_INSTALL_TITLE    */ L"Системийн үйлчилгээ суулгах",
+    /* STR_UI_INSTALL_CONFIRM  */ L"Энэ програмыг Windows үйлчилгээ болгон суулгана:\n\n"
+        L"  · Байршил: Program Files\n"
+        L"  · Компьютер асаахад автоматаар эхэлнэ\n"
+        L"  · SYSTEM эрхтэй ажилладаг, БҮХ хэрэглэгчид хүртээмжтэй\n"
+        L"  · Microsoft Pinyin-н cloud саналыг бүрмөсөн унтраалга байлгана\n\n"
+        L"Үргэлжлүүлэх үү?",
+    /* STR_UI_FOUND_INSTALLED  */ L"Суулгасан нь илэрлээ",
+    /* STR_UI_UPGRADE_OR_REMOVE */ L"Энэ үйлчилгээ аль хэдийн суулгагдсан байна.\n\n"
+        L"«Шинэчлэх» — суулгасан хувийг энэхүү хувилбараар сольж, үйлчилгээг дахин асаана\n"
+        L"«Үйлчилгээг устгах» — үйлчилгээг зогсоож, устгана (программын файл, лог хэвээр үлдэнэ)",
+    /* STR_UI_BTN_UPGRADE      */ L"Шинэчлэх",
+    /* STR_UI_BTN_UNINSTALL    */ L"Үйлчилгээг устгах",
+    /* STR_UI_BTN_CANCEL       */ L"Цуцлах",
+    /* STR_UI_INSTALL_DONE     */ L"Суулгаж дууслаа, үйлчилгээ ажиллаж байна.\n\n"
+        L"Одооноос бүх хэрэглэгчийн Microsoft Pinyin-н cloud тохиргоог албадан унтраалттай байлгана (дахин асаасны дараа ч).",
+    /* STR_UI_UPGRADE_DONE     */ L"Шинэчлэлт дууслаа, үйлчилгээг шинэ хувилбараар дахин асаалаа.",
+    /* STR_UI_UNINSTALL_DONE   */ L"Үйлчилгээг зогсоож, устгалаа.\n\n"
+        L"Программын файл, логууд хаана байсан тэндээ үлдэнэ, гараар устгаж болно.",
+    /* STR_UI_OP_FAILED_FMT    */ L"Үйлдэл амжилтгүй боллоо (алдаа %lu).\n\nАдминистратораар ажиллуулж байгаагаа шалгана уу.",
+    /* STR_UI_CANCELLED        */ L"Цуцлагдлаа. Ямар ч өөрчлөлт оруулаагүй.",
+    /* STR_USAGE               */ L"Хэрэглээ:\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe install    үйлчилгээг суулгаж, асаах (админ эрх шаардлагатай)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe uninstall  үйлчилгээг зогсоож, устгах (админ эрх шаардлагатай)\n"
+        L"  FuckMSIME-CHS-Bing-Suggestion.exe debug      консолийн дибаг горим\n"
+        L"Аргументгүй ажиллуулахад график суулгах/шинэчлэх/үйлчилгээг устгах горим нээгдэнэ.",
+};
+
 // ---------------------------------------------------------------- picker ----
 
 struct LocaleEntry {
@@ -759,6 +951,13 @@ static const LocaleEntry kLocales[] = {
     { 0x0455, kStrings_myMM },   // my-MM  Burmese
     { 0x0453, kStrings_kmKH },   // km-KH  Khmer
     { 0x0454, kStrings_loLA },   // lo-LA  Lao
+    { 0x043F, kStrings_kkKZ },   // kk-KZ  Kazakh
+    { 0x0440, kStrings_kyKG },   // ky-KG  Kyrgyz
+    { 0x0428, kStrings_tgTJ },   // tg-TJ  Tajik
+    { 0x0442, kStrings_tkTM },   // tk-TM  Turkmen
+    { 0x0443, kStrings_uzUZ },   // uz-UZ  Uzbek (Cyrillic)
+    { 0x0843, kStrings_uzUZ },   // uz-Latn Uzbek (Latin)
+    { 0x0450, kStrings_mnMN },   // mn-MN  Mongolian (Cyrillic)
 };
 
 inline const wchar_t* L(StrId id) {
