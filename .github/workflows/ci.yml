@@ -1,0 +1,76 @@
+# ============================================================================
+#  CI — build the service binary on every push/PR to main.
+#
+#  Pipeline: checkout -> setup MSVC -> build.bat -> SHA256 -> upload artifact.
+#  Tagged builds (v*) are handled by release.yml (Release + SBOM + provenance
+#  attestations); CodeQL static analysis lives in codeql.yml.
+# ============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  EXE: FuckMSIME-CHS-Bing-Suggestion.exe
+
+jobs:
+  build:
+    name: MSVC x64 build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup MSVC x64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build (build.bat)
+        shell: cmd
+        run: build.bat
+
+      - name: Compute SHA256
+        shell: pwsh
+        run: |
+          $exe = "build/${{ env.EXE }}"
+          $sha256 = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path "$exe.sha256" -Value "$sha256  ${{ env.EXE }}" -Encoding ascii
+          Write-Host "::notice::$exe  SHA256=$sha256"
+          Get-Content "$exe.sha256"
+
+      # -- smoke check: the manifest must still be embedded (mt step succeeded)
+      #    and the PE must be x64.
+      - name: Sanity-check binary
+        shell: pwsh
+        run: |
+          $exe = "build/${{ env.EXE }}"
+          $bytes = [IO.File]::ReadAllBytes($exe)
+          if ($bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) { throw "not a PE image" }
+          $peOffset = [BitConverter]::ToInt32($bytes, 0x3C)
+          $machine = [BitConverter]::ToUInt16($bytes, $peOffset + 4)
+          if ($machine -ne 0x8664) { throw ("unexpected PE machine: 0x{0:X4}" -f $machine) }
+          $utf8 = [Text.Encoding]::UTF8.GetString($bytes)
+          if (-not $utf8.Contains('requireAdministrator')) { throw "requireAdministrator manifest missing" }
+          Write-Host "OK: x64 PE with requireAdministrator manifest"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-x64-${{ github.sha }}
+          path: |
+            build/${{ env.EXE }}
+            build/${{ env.EXE }}.sha256
+          if-no-files-found: error
