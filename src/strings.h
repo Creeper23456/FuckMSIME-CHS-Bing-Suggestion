@@ -103,9 +103,13 @@ static const LocaleEntry kLocales[] = {
 
 inline const wchar_t* L(StrId id) {
     static const wchar_t* const* table = [] {
-        LANGID ui = GetUserDefaultUILanguage();
-        for (const auto& e : kLocales)
+        const LANGID ui = GetUserDefaultUILanguage();
+        for (const auto& e : kLocales)                  // exact locale match
             if (e.lang == ui) return e.table;
+        const LANGID prim = PRIMARYLANGID(ui);
+        for (const auto& e : kLocales)                  // same base language:
+            if (PRIMARYLANGID(e.lang) == prim)          // en-GB -> en-US etc.
+                return e.table;
         return kStrings_enUS;   // fallback
     }();
     return table[id];
