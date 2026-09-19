@@ -1,0 +1,10 @@
+# debug session logs and captures
+logs/
+*.log
+
+# symbols cache
+tmp/
+*.pdb
+
+# local secrets/env
+.env
