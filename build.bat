@@ -28,7 +28,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-cl /nologo /O2 /W4 /EHsc /MT /DUNICODE /D_UNICODE ^
+rem -- /utf-8 is REQUIRED: strings.h is UTF-8 (no BOM) and contains non-ASCII
+rem -- text in every locale table. Without this flag cl decodes the source
+rem -- using the system ANSI codepage (GBK, CP1252, ...), silently mangling
+rem -- all of it at compile time -> mojibake in the UI regardless of runtime.
+cl /nologo /O2 /W4 /EHsc /MT /utf-8 /DUNICODE /D_UNICODE ^
    /Fe:build\FuckMSIME-CHS-Bing-Suggestion.exe ^
    src\main.cpp ^
    /link advapi32.lib /SUBSYSTEM:CONSOLE

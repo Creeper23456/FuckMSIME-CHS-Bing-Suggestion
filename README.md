@@ -22,6 +22,9 @@ build.bat
 ```
 
 产物：`build\FuckMSIME-CHS-Bing-Suggestion.exe`（静态链接 /MT，单文件可部署）。
+注意 `build.bat` 固定传 `/utf-8`：源码与字符串表均为 UTF-8，缺了这个参数
+cl 会按系统 ANSI 代码页（GBK 等）解码源文件，**编译期**就把所有非 ASCII
+界面文案变成乱码（这正是「英文界面也乱码」的根因——英文表里的 `—`、`·`）。
 
 ## 使用
 
