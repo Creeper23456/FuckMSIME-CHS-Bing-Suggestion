@@ -58,3 +58,7 @@ TextInputHost 写 Enable Cloud Candidate = 1
 - `main`：本项目（正式服务）
 - `test`：侦察过程全记录——静态逆向、4657 注册表审计取证、Windhawk
   NtSetValueKey hook 原型及其 13 连拒实录
+
+## 许可证
+
+本项目以 [GPL-3.0](LICENSE) 授权发布。
