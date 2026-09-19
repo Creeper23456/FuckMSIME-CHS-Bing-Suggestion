@@ -38,3 +38,25 @@
 - 云建议网络调用链: ChsProxyDS.dll（WinHTTP: cn.bing.com, cloudsuggestion.chinacloudsites.cn）
 - ChsIME 实例模型: 常驻服务实例(不联网) + 短命组字实例(联网, 受保护, 附着困难)
 - 组字实例孵化时机与 7576 被冻结相关；健康状态下未见孵化
+
+## 决定性证据（4657 审计，2025-09-19 19:50-19:52）
+
+```
+19:50:09  TextInputHost.exe (SystemApps\MicrosoftWindows.Client.CBS) 把 Enable Cloud Candidate 0→1
+19:51:09  SystemSettings.exe (ImmersiveControlPanel)              把 Enable Cloud Candidate 1→0
+19:52:06  TextInputHost.exe                                        0→1 再次翻转
+```
+
+结论: 推广弹窗出现即由 TextInputHost 直接改写设置值（所谓"绕过组策略"即此）。
+
+## 处置（已生效）
+
+- `HKCU\Software\Microsoft\InputMethod\Settings\CHS` 键挂 Deny SetValue ACE（SID S-1-5-21-...-1001）
+- 写入验证: UnauthorizedAccess ✓，值钉死 0 ✓
+- 回滚方法: 提权移除该 Deny ACE（acl-deny3.ps1 反向操作）
+- 注意: 本用户一切进程(含自己)都不可再写此键；仅删 ACE 可解
+
+## 待观察
+
+- 弹窗是否仍出现（其"启用"动作已失效）
+- 若仍出现且烦人 → 下一步定位其展示状态（CBS settings.dat / CloudStore，均未捕获到点击期写入）
