@@ -60,3 +60,15 @@
 
 - 弹窗是否仍出现（其"启用"动作已失效）
 - 若仍出现且烦人 → 下一步定位其展示状态（CBS settings.dat / CloudStore，均未捕获到点击期写入）
+
+## 最终战报（Windhawk mod v0.2.0）
+
+- v0.1 (RegSetValueExW) 零命中 → 实锤 CBS 组件**直接调 ntdll!NtSetValueKey**，绕过 win32 注册表包装层
+- v0.2 下沉 NtSetValueKey + 大小写不敏感：弹窗触发期 **13 次写入尝试全部 STATUS_ACCESS_DENIED**（DbgView 实录）
+- 值钉死 0；TextInputHost 只拦两个值名，其余写入与全系统其他进程不受影响
+- 回滚 = Windhawk 里停用 mod
+
+### 经验教训
+1. 抓写入者：SACL 审计 (auditpol 0CCE921E) + 4657 事件是免调试器的决定性手段
+2. hook CBS/输入体验类组件必须下到 ntdll 原生 API，win32 层会被绕过
+3. .NET ACL API 的枚举/SDDL 读取对含 Deny 的键行为不稳，直接用 SDDL 字符串最可靠
