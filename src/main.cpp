@@ -393,6 +393,28 @@ bool StartSvc() {
     return ok;
 }
 
+// Repoint the existing service's ImagePath at a canonical target.
+DWORD RetargetService(const std::wstring& target) {
+    SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
+    if (!scm) return GetLastError();
+    SC_HANDLE svc = OpenServiceW(scm, kServiceName, SERVICE_CHANGE_CONFIG);
+    if (!svc) {
+        const DWORD e = GetLastError();
+        CloseServiceHandle(scm);
+        return e;
+    }
+    const std::wstring cmd = L"\"" + target + L"\"";
+    const bool ok = ChangeServiceConfigW(svc, SERVICE_NO_CHANGE,
+                                         SERVICE_NO_CHANGE, SERVICE_NO_CHANGE,
+                                         cmd.c_str(), nullptr, nullptr,
+                                         nullptr, nullptr, nullptr, nullptr);
+    const DWORD err = ok ? ERROR_SUCCESS : GetLastError();
+    CloseServiceHandle(svc);
+    CloseServiceHandle(scm);
+    if (ok) Log(L"service retargeted to %s", target.c_str());
+    return err;
+}
+
 // Copy self into Program Files, register as auto-start service, start it.
 DWORD InstallService() {
     const std::wstring target = InstallTarget();
@@ -503,11 +525,21 @@ int RunInteractive() {
     if (GetServiceBinary(&svcPath)) {
         int sel = AskUpgradeOrRemove();
         if (sel == kIdUpgrade) {
+            // Hardening: the ImagePath stored in the SCM is mutable system
+            // state we don't fully control, so never write to it blindly.
+            // Only the canonical install target is overwritten; a service
+            // pointing somewhere else is repointed at the canonical target
+            // (the foreign binary itself is left untouched).
+            const std::wstring target = InstallTarget();
             StopSvc();
-            if (_wcsicmp(SelfPath().c_str(), svcPath.c_str()) != 0 &&
-                !CopyFileW(SelfPath().c_str(), svcPath.c_str(), FALSE)) {
+            if (_wcsicmp(SelfPath().c_str(), target.c_str()) != 0 &&
+                !CopyFileW(SelfPath().c_str(), target.c_str(), FALSE)) {
                 FailBox(GetLastError());
                 return 1;
+            }
+            if (_wcsicmp(svcPath.c_str(), target.c_str()) != 0) {
+                const DWORD rc = RetargetService(target);
+                if (rc != ERROR_SUCCESS) { FailBox(rc); return 1; }
             }
             if (!StartSvc()) { FailBox(GetLastError()); return 1; }
             InfoBox(L(STR_UI_UPGRADE_DONE), MB_ICONINFORMATION);
