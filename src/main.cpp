@@ -224,6 +224,11 @@ void SuperviseLoop() {
             if (handles.size() >= kMaxWfmo) break;
             handles.push_back(w.event);
         }
+        // Watches that didn't fit into the WFMO wait set are polled below on
+        // every rescan tick, so their worst-case latency degrades to
+        // kRescanMs instead of staying "armed but never waited on" (matters
+        // on RDS / terminal hosts with more users than the wait-set cap).
+        const size_t polledFrom = handles.size() - 1;
 
         DWORD wait = WaitForMultipleObjects((DWORD)handles.size(),
                                             handles.data(), FALSE, kRescanMs);
@@ -237,8 +242,11 @@ void SuperviseLoop() {
                 ArmNotify(w.event, w.key);   // one-shot: re-arm
                 break;
             }
+        } else if (wait == WAIT_TIMEOUT) {
+            for (size_t i = polledFrom; i < g_watches.size(); ++i)
+                EnforceKey(g_watches[i].key, g_watches[i].sid.c_str());
         }
-        // timeout path: loop back to ScanHives() (catches logon/logoff)
+        // otherwise: loop back to ScanHives() (catches logon/logoff)
     }
 }
 
