@@ -52,19 +52,30 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "SHA256=$sha256"
           Get-Content "$exe.sha256"
 
-      # -- SBOM of the release binary (syft). Kept as a release asset AND
-      #    attested below; workflow/upload duplication disabled on purpose.
-      #    NOTE: the input is "path" (not "artifact") — an unknown input is
-      #    silently ignored and syft falls back to scanning the whole
-      #    checkout directory, which produces a useless SBOM.
+      # -- SBOM of the release binary. The sbom-action wrapper always forces
+      #    a dir: source (and its 'path' input ignores single files), which
+      #    yields SBOMs without the exe digest; a raw syft "file:" scan is
+      #    the only form whose output actually binds the binary's SHA-256
+      #    (verified locally: metadata/components carry SHA-1+SHA-256).
+      #    Version is pinned on purpose; bump manually or via Dependabot-
+      #    style review when needed.
+      - name: Install syft
+        shell: pwsh
+        env:
+          SYFT_VERSION: '1.42.3'
+        run: |
+          $url = "https://github.com/anchore/syft/releases/download/v$($env:SYFT_VERSION)/syft_$($env:SYFT_VERSION)_windows_amd64.zip"
+          Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\syft.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\syft.zip" -DestinationPath "$env:RUNNER_TEMP\syft" -Force
+          Add-Content -Path $env:GITHUB_PATH -Value "$env:RUNNER_TEMP\syft"
+
       - name: Generate SBOM (CycloneDX)
-        uses: anchore/sbom-action@v0
-        with:
-          path: build/${{ env.EXE }}
-          format: cyclonedx-json
-          output-file: build/${{ env.EXE }}.cdx.json
-          upload-artifact: false
-          upload-release-assets: false
+        shell: pwsh
+        run: |
+          syft scan "file:build/${{ env.EXE }}" -o "cyclonedx-json=build/${{ env.EXE }}.cdx.json"
+          if (-not (Select-String -Path "build/${{ env.EXE }}.cdx.json" -Pattern 'SHA-256' -Quiet)) {
+            throw "SBOM does not carry the binary SHA-256 - refusing to publish"
+          }
 
       # -- SLSA v1 build provenance: who built what, from which ref/commit.
       - name: Attest build provenance
