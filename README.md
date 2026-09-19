@@ -23,15 +23,33 @@ build.bat
 
 产物：`build\FuckMSIME-CHS-Bing-Suggestion.exe`（静态链接 /MT，单文件可部署）。
 
-## 使用（需管理员）
+## 使用
+
+**双击即用**：程序内嵌 requireAdministrator 清单，双击必过 UAC——
+
+- 未安装：弹窗确认「即将安装系统服务…是否继续？」→ 确认后复制自身到
+  `Program Files`，注册为自动启动服务并立即启动
+- 已安装：弹出向导「检测到已安装」，可选 **升级**（用当前程序替换已装版本
+  并重启服务）或 **卸载**（停止并移除）
+
+命令行模式同样可用：
 
 ```bat
-FuckMSIME-CHS-Bing-Suggestion.exe install     :: 安装为自动启动服务并立即启动
-FuckMSIME-CHS-Bing-Suggestion.exe uninstall   :: 停止并卸载服务
+FuckMSIME-CHS-Bing-Suggestion.exe install     :: 安装 + 启动（需管理员）
+FuckMSIME-CHS-Bing-Suggestion.exe uninstall   :: 停止 + 移除（需管理员）
 FuckMSIME-CHS-Bing-Suggestion.exe debug       :: 控制台调试模式（Ctrl+C 退出）
 ```
 
+服务以 SYSTEM 身份运行，保护作用于**所有用户**；新用户首次登录自动建键钉死默认值。
+服务停止/卸载即完全还原（不删任何东西）。
+
 日志：`C:\ProgramData\FuckMSIME-CHS-Bing-Suggestion\FuckMSIME-CHS-Bing-Suggestion.log`
+
+## 国际化
+
+界面文案全部集中在 [`src/strings.h`](src/strings.h)（键值映射表，当前 zh-CN /
+en-US，按用户 UI 语言自动选择，英文兜底）。新增语言 = 加一张表 + 一行注册。
+main.cpp 只引用 `STR_*` 键。
 
 ## 工作原理
 

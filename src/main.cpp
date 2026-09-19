@@ -1,36 +1,50 @@
 // ============================================================================
-//  ChsCloudPin — pins Microsoft Pinyin (CHS IME) cloud-suggestion settings OFF
+//  FuckMSIME-CHS-Bing-Suggestion — pins Microsoft Pinyin (CHS IME) cloud
+//  suggestion settings OFF for every user on the machine.
 //
 //  Background: on Windows 11, TextInputHost.exe (Windows Input Experience)
 //  writes HKCU\Software\Microsoft\InputMethod\Settings\CHS values
 //  "Enable Cloud Candidate" and "AutoShowCloudSuggestion" back to 1 whenever
 //  its promotion popup fires (verified via 4657 registry auditing).
 //
-//  This service watches every loaded user hive under HKEY_USERS and reverts
+//  The service watches every loaded user hive under HKEY_USERS and reverts
 //  those two values to 0 the moment they change (RegNotifyChangeKeyValue,
-//  kernel-pushed notifications, ~zero cost). Runs as LocalSystem, auto start.
+//  kernel-pushed notifications, ~zero cost). Runs as SYSTEM, auto start,
+//  so the pin applies to ALL users.
 //
 //  Usage:
-//    ChsCloudPin.exe install    install as auto-start service and start it
-//    ChsCloudPin.exe uninstall  stop and remove the service
-//    ChsCloudPin.exe debug      run in console for development
-//    ChsCloudPin.exe            (default) run as a service via SCM
+//    (double-click)             graphical install / upgrade / uninstall wizard
+//    ... install                install into Program Files, register + start
+//    ... uninstall              stop and remove the service
+//    ... debug                  console debug run
+//    (SCM starts the binary)    runs the watchdog service
+//
+//  The binary embeds a requireAdministrator manifest: double-click always
+//  goes through UAC. When SCM launches the same binary as a service the
+//  manifest is ignored (services run under their configured account).
 // ============================================================================
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <commctrl.h>
+#include <shlobj.h>
 
 #include <cstdio>
 #include <cwchar>
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "strings.h"
+
 #pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "user32.lib")
 
 namespace {
 
 constexpr wchar_t kServiceName[] = L"FuckMSIME-CHS-Bing-Suggestion";
-constexpr wchar_t kServiceDisplay[] = L"FuckMSIME-CHS-Bing-Suggestion";
 constexpr wchar_t kServiceDesc[] =
     L"Pins Microsoft Pinyin cloud-suggestion settings to OFF for every user, "
     L"reverting writes made by TextInputHost.exe.";
@@ -38,15 +52,17 @@ constexpr wchar_t kChsPath[] = L"Software\\Microsoft\\InputMethod\\Settings\\CHS
 constexpr wchar_t kValCloud[] = L"Enable Cloud Candidate";
 constexpr wchar_t kValAuto[] = L"AutoShowCloudSuggestion";
 constexpr wchar_t kLogDir[] = L"C:\\ProgramData\\FuckMSIME-CHS-Bing-Suggestion";
-constexpr wchar_t kLogFile[] = L"C:\\ProgramData\\FuckMSIME-CHS-Bing-Suggestion\\FuckMSIME-CHS-Bing-Suggestion.log";
+constexpr wchar_t kLogFile[] =
+    L"C:\\ProgramData\\FuckMSIME-CHS-Bing-Suggestion\\FuckMSIME-CHS-Bing-Suggestion.log";
 
 constexpr DWORD kRescanMs = 5000;   // picks up hives loading at logon
 constexpr DWORD kMaxWfmo = 60;      // WaitForMultipleObjects practical cap
+constexpr UINT kIdUpgrade = 1001;   // task-dialog button ids
+constexpr UINT kIdUninstall = 1002;
 
 SERVICE_STATUS g_status = {};
 SERVICE_STATUS_HANDLE g_statusHandle = nullptr;
 HANDLE g_stopEvent = nullptr;
-bool g_debugMode = false;
 
 struct Watch {
     std::wstring sid;
@@ -78,7 +94,7 @@ void Log(const wchar_t* fmt, ...) {
     }
 }
 
-// ------------------------------------------------------------- enforcment --
+// ------------------------------------------------------------- watchdog ----
 
 bool IsUserHiveName(const wchar_t* name) {
     if (wcsncmp(name, L"S-1-5-21-", 9) != 0) return false;   // real accounts only
@@ -226,7 +242,7 @@ void SuperviseLoop() {
     }
 }
 
-// ------------------------------------------------------------ SCM plumbing --
+// ------------------------------------------------------- service plumbing --
 
 void WINAPI ServiceMain(DWORD, LPWSTR*) {
     g_statusHandle = RegisterServiceCtrlHandlerW(kServiceName,
@@ -265,7 +281,7 @@ BOOL WINAPI ConsoleCtrlHandler(DWORD type) {
     return FALSE;
 }
 
-// ---------------------------------------------------------------- install --
+// ------------------------------------------------- install / uninstall core --
 
 std::wstring SelfPath() {
     wchar_t buf[MAX_PATH];
@@ -273,53 +289,229 @@ std::wstring SelfPath() {
     return buf;
 }
 
-int CmdInstall() {
-    SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
-    if (!scm) { Log(L"OpenSCManager failed (err %lu) - run elevated", GetLastError()); return 1; }
+std::wstring InstallDir() {
+    wchar_t prog[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathW(nullptr, CSIDL_PROGRAM_FILES, nullptr,
+                                   SHGFP_TYPE_CURRENT, prog)))
+        return std::wstring(prog) + L"\\" + kServiceName;
+    return std::wstring(L"C:\\Program Files\\") + kServiceName;
+}
 
-    const std::wstring path = L"\"" + SelfPath() + L"\"";
-    SC_HANDLE svc = CreateServiceW(scm, kServiceName, kServiceDisplay,
+std::wstring InstallTarget() {
+    return InstallDir() + L"\\" + kServiceName + L".exe";
+}
+
+// If the service exists, fetch its configured binary path (quotes stripped).
+bool GetServiceBinary(std::wstring* path) {
+    SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr,
+                                   SERVICE_QUERY_STATUS | SERVICE_QUERY_CONFIG);
+    if (!scm) return false;
+    SC_HANDLE svc = OpenServiceW(scm, kServiceName, SERVICE_QUERY_CONFIG);
+    if (!svc) { CloseServiceHandle(scm); return false; }
+
+    bool ok = false;
+    DWORD need = 0;
+    QueryServiceConfigW(svc, nullptr, 0, &need);
+    if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        auto buf = std::make_unique<BYTE[]>(need);
+        auto cfg = reinterpret_cast<QUERY_SERVICE_CONFIGW*>(buf.get());
+        if (QueryServiceConfigW(svc, cfg, need, &need)) {
+            std::wstring p = cfg->lpBinaryPathName;
+            if (!p.empty() && p.front() == L'"') p = p.substr(1, p.size() - 2);
+            *path = p;
+            ok = true;
+        }
+    }
+    CloseServiceHandle(svc);
+    CloseServiceHandle(scm);
+    return ok;
+}
+
+bool StopSvc() {
+    SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr, SC_MANAGER_CONNECT);
+    if (!scm) return false;
+    SC_HANDLE svc = OpenServiceW(scm, kServiceName,
+                                 SERVICE_STOP | SERVICE_QUERY_STATUS);
+    if (!svc) { CloseServiceHandle(scm); return true; }   // not there = stopped
+
+    SERVICE_STATUS st = {};
+    ControlService(svc, SERVICE_CONTROL_STOP, &st);
+    for (int i = 0; i < 50 && QueryServiceStatus(svc, &st) &&
+                    st.dwCurrentState != SERVICE_STOPPED; ++i)
+        Sleep(200);
+    bool stopped = st.dwCurrentState == SERVICE_STOPPED;
+    CloseServiceHandle(svc);
+    CloseServiceHandle(scm);
+    return stopped;
+}
+
+bool StartSvc() {
+    SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr, SC_MANAGER_CONNECT);
+    if (!scm) return false;
+    SC_HANDLE svc = OpenServiceW(scm, kServiceName, SERVICE_START);
+    bool ok = svc && StartServiceW(svc, 0, nullptr);
+    if (svc) CloseServiceHandle(svc);
+    CloseServiceHandle(scm);
+    return ok;
+}
+
+// Copy self into Program Files, register as auto-start service, start it.
+DWORD InstallService() {
+    const std::wstring target = InstallTarget();
+    const std::wstring self = SelfPath();
+
+    if (_wcsicmp(self.c_str(), target.c_str()) != 0) {   // skip if already in place
+        CreateDirectoryW(InstallDir().c_str(), nullptr);
+        if (!CopyFileW(self.c_str(), target.c_str(), FALSE))
+            return GetLastError();
+    }
+
+    SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
+    if (!scm) return GetLastError();
+
+    const std::wstring cmd = L"\"" + target + L"\"";
+    SC_HANDLE svc = CreateServiceW(scm, kServiceName, kServiceName,
                                    SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
                                    SERVICE_AUTO_START, SERVICE_ERROR_NORMAL,
-                                   path.c_str(), nullptr, nullptr, nullptr,
+                                   cmd.c_str(), nullptr, nullptr, nullptr,
                                    nullptr, nullptr);
-    if (!svc && GetLastError() == ERROR_SERVICE_EXISTS) {
-        Log(L"service already installed");
-        svc = OpenServiceW(scm, kServiceName, SERVICE_START | SERVICE_CHANGE_CONFIG);
+    if (!svc && GetLastError() == ERROR_SERVICE_EXISTS)
+        svc = OpenServiceW(scm, kServiceName,
+                           SERVICE_START | SERVICE_CHANGE_CONFIG | SERVICE_STOP);
+    if (!svc) {
+        DWORD e = GetLastError();
+        CloseServiceHandle(scm);
+        return e;
     }
-    if (!svc) { Log(L"CreateService failed (err %lu)", GetLastError()); CloseServiceHandle(scm); return 1; }
 
     SERVICE_DESCRIPTIONW desc;
     desc.lpDescription = const_cast<wchar_t*>(kServiceDesc);
     ChangeServiceConfig2W(svc, SERVICE_CONFIG_DESCRIPTION, &desc);
 
-    if (!StartServiceW(svc, 0, nullptr))
-        Log(L"StartService: err %lu (may already be running)", GetLastError());
-    else
-        Log(L"service installed and started");
-
+    bool started = StartServiceW(svc, 0, nullptr);
+    DWORD err = started ? ERROR_SUCCESS : GetLastError();
     CloseServiceHandle(svc);
     CloseServiceHandle(scm);
-    return 0;
+
+    if (started) Log(L"service installed at %s", target.c_str());
+    return err;
 }
 
-int CmdUninstall() {
+// Stop (if running) and delete the service.
+DWORD RemoveService() {
     SC_HANDLE scm = OpenSCManagerW(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
-    if (!scm) { Log(L"OpenSCManager failed (err %lu) - run elevated", GetLastError()); return 1; }
+    if (!scm) return GetLastError();
     SC_HANDLE svc = OpenServiceW(scm, kServiceName,
                                  SERVICE_STOP | DELETE | SERVICE_QUERY_STATUS);
-    if (!svc) { Log(L"service not found"); CloseServiceHandle(scm); return 1; }
+    if (!svc) {
+        DWORD e = GetLastError();
+        CloseServiceHandle(scm);
+        return e == ERROR_SERVICE_DOES_NOT_EXIST ? ERROR_SUCCESS : e;
+    }
 
     SERVICE_STATUS st = {};
     ControlService(svc, SERVICE_CONTROL_STOP, &st);
-    for (int i = 0; i < 20 && QueryServiceStatus(svc, &st) &&
+    for (int i = 0; i < 50 && QueryServiceStatus(svc, &st) &&
                     st.dwCurrentState != SERVICE_STOPPED; ++i)
         Sleep(200);
-    DeleteService(svc);
-    Log(L"service uninstalled");
+
+    bool deleted = DeleteService(svc);
+    DWORD err = deleted ? ERROR_SUCCESS : GetLastError();
     CloseServiceHandle(svc);
     CloseServiceHandle(scm);
+    if (deleted) Log(L"service removed");
+    return err;
+}
+
+// -------------------------------------------------------- interactive GUI --
+
+void InfoBox(const wchar_t* text, UINT icon) {
+    MessageBoxW(nullptr, text, L(STR_APP_NAME), MB_OK | icon);
+}
+
+void FailBox(DWORD err) {
+    wchar_t msg[512];
+    _snwprintf_s(msg, _countof(msg), _TRUNCATE, L(STR_UI_OP_FAILED_FMT), err);
+    InfoBox(msg, MB_ICONERROR);
+}
+
+// Returns kIdUpgrade / kIdUninstall / IDCANCEL.
+int AskUpgradeOrRemove() {
+    TASKDIALOG_BUTTON buttons[3] = {
+        { kIdUpgrade,   L(STR_UI_BTN_UPGRADE) },
+        { kIdUninstall, L(STR_UI_BTN_UNINSTALL) },
+        { IDCANCEL,     L(STR_UI_BTN_CANCEL) },
+    };
+    TASKDIALOGCONFIG cfg = {};
+    cfg.cbSize = sizeof(cfg);
+    cfg.dwFlags = TDF_USE_COMMAND_LINKS;
+    cfg.pszWindowTitle = L(STR_APP_NAME);
+    cfg.pszMainInstruction = L(STR_UI_FOUND_INSTALLED);
+    cfg.pszContent = L(STR_UI_UPGRADE_OR_REMOVE);
+    cfg.pButtons = buttons;
+    cfg.cButtons = 3;
+    int sel = 0;
+    if (SUCCEEDED(TaskDialogIndirect(&cfg, &sel, nullptr, nullptr)) && sel)
+        return sel;
+
+    // fallback: stock message box
+    int mb = MessageBoxW(nullptr, L(STR_UI_UPGRADE_OR_REMOVE), L(STR_APP_NAME),
+                         MB_YESNOCANCEL | MB_ICONQUESTION);
+    return mb == IDYES ? kIdUpgrade : mb == IDNO ? kIdUninstall : IDCANCEL;
+}
+
+int RunInteractive() {
+    std::wstring svcPath;
+    if (GetServiceBinary(&svcPath)) {
+        int sel = AskUpgradeOrRemove();
+        if (sel == kIdUpgrade) {
+            StopSvc();
+            if (_wcsicmp(SelfPath().c_str(), svcPath.c_str()) != 0 &&
+                !CopyFileW(SelfPath().c_str(), svcPath.c_str(), FALSE)) {
+                FailBox(GetLastError());
+                return 1;
+            }
+            if (!StartSvc()) { FailBox(GetLastError()); return 1; }
+            InfoBox(L(STR_UI_UPGRADE_DONE), MB_ICONINFORMATION);
+        } else if (sel == kIdUninstall) {
+            DWORD err = RemoveService();
+            if (err != ERROR_SUCCESS) { FailBox(err); return 1; }
+            InfoBox(L(STR_UI_UNINSTALL_DONE), MB_ICONINFORMATION);
+        } else {
+            InfoBox(L(STR_UI_CANCELLED), MB_ICONINFORMATION);
+        }
+        return 0;
+    }
+
+    if (MessageBoxW(nullptr, L(STR_UI_INSTALL_CONFIRM), L(STR_APP_NAME),
+                    MB_YESNO | MB_ICONQUESTION) != IDYES) {
+        InfoBox(L(STR_UI_CANCELLED), MB_ICONINFORMATION);
+        return 0;
+    }
+    DWORD err = InstallService();
+    if (err != ERROR_SUCCESS) { FailBox(err); return 1; }
+    InfoBox(L(STR_UI_INSTALL_DONE), MB_ICONINFORMATION);
     return 0;
+}
+
+// ------------------------------------------------------------ CLI modes --
+
+int CmdInstall() {
+    DWORD err = InstallService();
+    if (err == ERROR_SERVICE_ALREADY_RUNNING) {
+        Log(L"service already installed and running");
+        return 0;
+    }
+    if (err != ERROR_SUCCESS) FailBox(err);
+    else Log(L"service installed and started");
+    return err != ERROR_SUCCESS ? 1 : 0;
+}
+
+int CmdUninstall() {
+    DWORD err = RemoveService();
+    if (err != ERROR_SUCCESS) FailBox(err);
+    else Log(L"service uninstalled");
+    return err != ERROR_SUCCESS ? 1 : 0;
 }
 
 // ------------------------------------------------------------------- main --
@@ -331,7 +523,6 @@ int wmain(int argc, wchar_t** argv) {
     if (argc >= 2 && wcscmp(argv[1], L"uninstall") == 0) return CmdUninstall();
 
     if (argc >= 2 && wcscmp(argv[1], L"debug") == 0) {
-        g_debugMode = true;
         SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
         g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
         Log(L"debug run - Ctrl+C to stop");
@@ -345,11 +536,9 @@ int wmain(int argc, wchar_t** argv) {
         { nullptr, nullptr },
     };
     if (!StartServiceCtrlDispatcherW(table)) {
-        fwprintf(stderr, L"Usage:\n"
-                         L"  %s install    install + start service (elevated)\n"
-                         L"  %s uninstall  stop + remove service (elevated)\n"
-                         L"  %s debug      run in console\n",
-                 argv[0], argv[0], argv[0]);
+        if (GetLastError() == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
+            return RunInteractive();          // launched by a user double-click
+        fwprintf(stderr, L"%s\n", L(STR_USAGE));
         return 1;
     }
     return 0;

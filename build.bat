@@ -37,5 +37,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
+mt -nologo -manifest src\app.manifest "-outputresource:build\FuckMSIME-CHS-Bing-Suggestion.exe;#1"
+if errorlevel 1 (
+    echo MANIFEST EMBED FAILED
+    exit /b 1
+)
+
 echo.
-echo OK: build\FuckMSIME-CHS-Bing-Suggestion.exe
+echo OK: build\FuckMSIME-CHS-Bing-Suggestion.exe ^(requireAdministrator + comctl32 v6 embedded^)
