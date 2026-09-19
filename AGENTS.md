@@ -113,3 +113,26 @@ CloudUID / suggestion / Suggests / OnRequestBingTest
 - [ ] Phase A-3: 附加 + 断点 + 符号
 - [ ] Phase A-4: 触发采证，产出 RVA 链
 - [ ] Phase B: hook 层决策与实现（另行授权）
+
+## 7. 动态侦察实录（Phase A 进行中）
+
+### 7.1 ChsIME.exe 实例模型（实测，26100.9457）
+
+- **常驻服务实例**：开机即在，只加载基础模块（~25 个），永不加载 DS 模块、永不联网
+- **组字实例**：用户开始中文组字时临时孵化，加载 ChsPinyinDS/ChsProxyDS 等并联网，**组完即退出**（实测存活 < 1 分钟）
+- 结论：**快照式调试器附加无法命中组字实例**（PID 活不过附加流程）；ChsProxyDS 的 WinHTTP 调用发生在组字实例内
+
+### 7.2 工具踩坑记录
+
+- 非提权 cdb 直接附加 ChsIME → 0n5 Access denied；提权 dbgsrv（named pipe）+ `cdb -premote` 可附加服务实例
+- `cdb -premote` 会话中 `.detach` 会挂死（进程服务器模式不支持干净脱离）——退出即 `q`，接受 debuggee 同死（ChsIME 自动重启）
+- 附加短命实例报 `0n87 The parameter is incorrect`（僵尸 PID 特征）
+- `pkill -f` 模式串会匹配到调用者自身命令行——harness 里已改用 PID 精确清理
+- `$$><script` 将整个文件折叠为一行（换行→`;`），**脚本内禁止在注释里写分号**
+
+### 7.3 路线修订
+
+调试器采证 → **Windhawk 注入采证**（服务监控进程孵化，按路径匹配，免疫实例churn）：
+1. 安装 Windhawk（UAC）
+2. 诊断 mod：hook `winhttp!WinHttpConnect/OpenRequest/SendRequest`，仅记录主机/URI + 捕获调用栈 RVA → 完成 Phase A
+3. 同一 mod 翻转为 deny 模式（域名白名单外拒绝）→ Phase B
