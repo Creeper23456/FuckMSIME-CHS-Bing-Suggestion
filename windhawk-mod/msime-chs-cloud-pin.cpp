@@ -101,13 +101,13 @@ BOOL Wh_ModInit() {
         Wh_Log(L"hook failed: RegSetValueExA");
 
     FARPROC pSetKeyValue = GetProcAddress(GetModuleHandleW(L"advapi32.dll"), "RegSetKeyValueW");
-    if (pSetKeyValue && !Wh_SetFunctionHook(pSetKeyValue, (void*)RegSetKeyValueW_Hook, (void**)&RegSetKeyValueW_Orig))
+    if (pSetKeyValue && !Wh_SetFunctionHook((void*)pSetKeyValue, (void*)RegSetKeyValueW_Hook, (void**)&RegSetKeyValueW_Orig))
         Wh_Log(L"hook failed: RegSetKeyValueW");
 
     if (ntdll) {
         FARPROC pNtSet = GetProcAddress(ntdll, "NtSetValueKey");
         if (pNtSet) {
-            if (!Wh_SetFunctionHook(pNtSet, (void*)NtSetValueKey_Hook, (void**)&NtSetValueKey_Orig))
+            if (!Wh_SetFunctionHook((void*)pNtSet, (void*)NtSetValueKey_Hook, (void**)&NtSetValueKey_Orig))
                 Wh_Log(L"hook failed: NtSetValueKey");
         } else {
             Wh_Log(L"NtSetValueKey export not found");
