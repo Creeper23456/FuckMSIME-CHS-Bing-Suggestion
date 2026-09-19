@@ -1,0 +1,9 @@
+$$ recon-init.txt — Phase A: cloud-suggestion network path capture
+$$ Target: ChsIME.exe; expect caller frames from ChsProxyDS.dll
+.symfix C:\Users\klp\AppData\Local\Temp\ime-recon\symbols
+.reload /f winhttp.dll
+bu winhttp!WinHttpConnect ".printf \"[CONNECT] \"; du @rdx; k 12; g"
+bu winhttp!WinHttpOpenRequest ".printf \"[OPENREQ] \"; du @r8; k 12; g"
+bu winhttp!WinHttpSendRequest ".printf \"[SEND] \"; k 20; g"
+lm
+g
